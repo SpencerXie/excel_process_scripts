@@ -33,7 +33,17 @@ def merge_excel_files(input_list, output_file, output_list):
     merged_data.columns = output_list + ['SourceFile']
 
     # 将合并的数据写入Excel文件
-    merged_data.to_excel(output_file, index=False)
+    save_large_data_to_excel(merged_data, output_file)
+
+
+def save_large_data_to_excel(data, output_file):
+    max_rows = 1048576
+    num_parts = len(data) // max_rows + 1
+
+    for i in range(num_parts):
+        part_data = data[i * max_rows:(i + 1) * max_rows]
+        part_file = output_file.replace('.xlsx', f'_part{i + 1}.xlsx')
+        part_data.to_excel(part_file, index=False)
 
 
 # 使用示例
