@@ -1,6 +1,7 @@
 import pandas as pd
 import traceback
 import sys
+from concurrent.futures import ProcessPoolExecutor
 
 
 def merge_excel_files(input_list, output_file, output_list):
@@ -39,23 +40,52 @@ def merge_excel_files(input_list, output_file, output_list):
     # 更改列名
     merged_data.columns = output_list + ['SourceFile']
 
-    # 将合并的数据写入Excel文件
-    save_large_data_to_excel(merged_data, output_file)
+    # 将合并的数据写入csv/excel文件
+    save_data(output_file, merged_data)
+
+
+def save_data(output_file, data):
+    if output_file.endswith('.csv'):
+        # 保存为CSV格式
+        data.to_csv(output_file, index=False)
+    elif output_file.endswith('.xlsx'):
+        # 保存为Excel格式
+        print('len(data) = ', len(data))
+        if len(data) > global_max_rows:
+            save_large_data_to_excel(data, output_file)
+        else:
+            data.to_excel(output_file, index=False)
+    else:
+        print("Unsupported file format. Please use either CSV or Excel.")
+
+
+def save_part_data(part_data, part_file):
+    part_data.to_excel(part_file, index=False)
 
 
 def save_large_data_to_excel(data, output_file):
-    max_rows = 1048576
-    num_parts = len(data) // max_rows + 1
+    num_parts = (len(data) - 1) // global_max_rows + 1
+    with ProcessPoolExecutor() as executor:
+        futures = []
+        for i in range(num_parts):
+            part_data = data[i * global_max_rows:(i + 1) * global_max_rows]
+            part_file = output_file.replace('.xlsx', f'_part{i + 1}.xlsx')
+            future = executor.submit(save_part_data, part_data, part_file)
+            futures.append(future)
 
-    for i in range(num_parts):
-        part_data = data[i * max_rows:(i + 1) * max_rows]
-        part_file = output_file.replace('.xlsx', f'_part{i + 1}.xlsx')
-        part_data.to_excel(part_file, index=False)
+        # 等待所有任务完成
+        for future in futures:
+            future.result()
 
 
-# 使用示例
-input_list = [{'file1.xlsx': {'': ['a1', 'a2', '', '名字']}},
-              {'file2.xlsx': {'Sheet1': ['b1', 'b2', 'b3', 'b4'], 'Sheet2': ['b6', 'b7', 'b8', 'b9']}},
-              {'file3.xlsx': {'Sheet1': ['c1', 'c2', 'c3', 'c4', 'c5']}}]
-output_list = ['out1', 'out2', 'out3', 'out4', '哈哈']
-merge_excel_files(input_list, 'output1.xlsx', output_list)
+global_max_rows = 1048570
+
+if __name__ == '__main__':
+    # 使用示例
+    input_list = [{'file1.xlsx': {'': ['a1', 'a2', '', '名字']}},
+                  {'file2.xlsx': {'Sheet1': ['b1', 'b2', 'b3', 'b4'], 'Sheet2': ['b6', 'b7', 'b8', 'b9']}},
+                  {'file3.xlsx': {'Sheet1': ['c1', 'c2', 'c3', 'c4', 'c5']}}]
+    output_list = ['out1', 'out2', 'out3', 'out4', '哈哈']
+    # 可以选 scv 也可以选 xlsx 格式
+    merge_excel_files(input_list, 'output1.csv', output_list)
+    # merge_excel_files(input_list, 'output1.xlsx', output_list)
