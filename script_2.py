@@ -4,7 +4,15 @@ from concurrent.futures import ProcessPoolExecutor
 
 
 def read_file(file_name):
-    df = pd.read_excel(file_name)
+    if file_name.endswith('.csv'):
+        # 读取CSV格式
+        df = pd.read_csv(file_name)
+    elif file_name.endswith('.xlsx'):
+        # 读取Excel格式
+        df = pd.read_excel(file_name)
+    else:
+        print("Unsupported file format. Please use either CSV or Excel.")
+        df = pd.DataFrame()
     print("【", datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "】 读取", file_name, "完成")
     return df
 
@@ -59,6 +67,7 @@ if __name__ == '__main__':
     file1_name = 'file11.xlsx'
     file1_key = 'a1'
 
+    # 同时支持读取csv和xlsx
     file2_name_list = ['file12.xlsx', 'file13.xlsx']
     file2_key = 'a2'
     file2_select_column_list = ['b2', 'c2']
