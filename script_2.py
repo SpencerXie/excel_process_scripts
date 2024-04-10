@@ -17,8 +17,7 @@ def read_file(file_name):
     return df
 
 
-def merge_files(file1, key1, file2_name_list, key2, cols_to_copy, file2_collumn_date, special_len_list, output_file,
-                new_col_names):
+def merge_files(file1, key1, file2_name_list, key2, cols_to_copy, special_len_list, output_file, new_col_names):
     # 读取两个文件
     df1 = pd.read_excel(file1)
     print("【", datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "】 读取file1完成")
@@ -69,7 +68,7 @@ if __name__ == '__main__':
     file2_name_list = ['file12.xlsx', 'file13.xlsx']
     file2_key = 'a2'
     file2_select_column_list = ['b2', 'c2', 'd2']
-    file2_collumn_date = 'd2'
+    # file2_collumn_date = 'd2'
 
     # 有一种特殊逻辑如果file1_key字段的字符串长度是18的时候，如果file2_key字段长度为36时，如果file2_key中前18个或者后18个字符串和key1相等就可以被选中
     special_key2_len_list = [6]  # 特殊两个key拼接在一起的key2字段长度, 例如34，36
@@ -78,5 +77,5 @@ if __name__ == '__main__':
     output_file_column_list = ['f1', 'g1', 'h1']
 
     # 使用函数
-    merge_files(file1_name, file1_key, file2_name_list, file2_key, file2_select_column_list, file2_collumn_date,
-                special_key2_len_list, output_file_name, output_file_column_list)
+    merge_files(file1_name, file1_key, file2_name_list, file2_key, file2_select_column_list, special_key2_len_list,
+                output_file_name, output_file_column_list)
