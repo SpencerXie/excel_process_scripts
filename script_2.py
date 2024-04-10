@@ -47,18 +47,16 @@ def merge_files(file1, key1, file2_name_list, key2, cols_to_copy, file2_collumn_
         df_temp_right = df2[mask].copy()
         df_temp_right[key2] = df_temp_right[key2].str[length // 2:]
         df2 = pd.concat([df2, df_temp_left, df_temp_right])
-    # 确保file2_collumn_date列是日期时间格式
-    df2[file2_collumn_date] = pd.to_datetime(df2[file2_collumn_date])
-    # 按'key2'列分组，并选择每组中file2_collumn_date列的最大值
-    df2_filtered = df2.sort_values(file2_collumn_date).drop_duplicates(key2, keep='last')
     # 使用merge函数合并两个dataframes
-    df_merged = pd.merge(df1, df2_filtered, how='left', left_on=key1, right_on=key2)
-    # 将指定列的内容复制到df1所在行数据的后面
+    df_merged = pd.merge(df1, df2, how='left', left_on=key1, right_on=key2)
+    # 使用字典修改指定列名
+    new_column_names = {}
     for col, new_col in zip(cols_to_copy, new_col_names):
-        df1[new_col] = df_merged[col]
-
+        new_column_names[col] = new_col
+    df_merged.rename(columns=new_column_names, inplace=True)
+    df_merged = df_merged[df1.columns.tolist() + new_col_names]
     # 输出到新的文件中
-    df1.to_excel(output_file, index=False)
+    df_merged.to_excel(output_file, index=False)
     print("【", datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "】输出到新的文件", output_file, "中完成")
 
 
@@ -70,14 +68,14 @@ if __name__ == '__main__':
     # 同时支持读取csv和xlsx
     file2_name_list = ['file12.xlsx', 'file13.xlsx']
     file2_key = 'a2'
-    file2_select_column_list = ['b2', 'c2']
+    file2_select_column_list = ['b2', 'c2', 'd2']
     file2_collumn_date = 'd2'
 
     # 有一种特殊逻辑如果file1_key字段的字符串长度是18的时候，如果file2_key字段长度为36时，如果file2_key中前18个或者后18个字符串和key1相等就可以被选中
     special_key2_len_list = [6]  # 特殊两个key拼接在一起的key2字段长度, 例如34，36
 
     output_file_name = 'output2.xlsx'
-    output_file_column_list = ['f1', 'g1']
+    output_file_column_list = ['f1', 'g1', 'h1']
 
     # 使用函数
     merge_files(file1_name, file1_key, file2_name_list, file2_key, file2_select_column_list, file2_collumn_date,
