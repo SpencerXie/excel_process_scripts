@@ -47,7 +47,7 @@ def merge_files(file1, key1, file2_name_list, key2, cols_to_copy, special_len_li
         df_temp_right[key2] = df_temp_right[key2].str[length // 2:]
         df2 = pd.concat([df2, df_temp_left, df_temp_right])
     # 使用merge函数合并两个dataframes
-    df_merged = pd.merge(df1, df2, how='left', left_on=key1, right_on=key2)
+    df_merged = pd.merge(df1, df2, how='left', left_on=df1[key1].str.lower(), right_on=df2[key2].str.lower())
     # 使用字典修改指定列名
     new_column_names = {}
     for col, new_col in zip(cols_to_copy, new_col_names):
@@ -67,14 +67,14 @@ if __name__ == '__main__':
     # 同时支持读取csv和xlsx
     file2_name_list = ['file12.xlsx', 'file13.xlsx']
     file2_key = 'a2'
-    file2_select_column_list = ['b2', 'c2', 'd2']
+    file2_select_column_list = ['a2', 'b2', 'c2', 'd2']
     # file2_collumn_date = 'd2'
 
     # 有一种特殊逻辑如果file1_key字段的字符串长度是18的时候，如果file2_key字段长度为36时，如果file2_key中前18个或者后18个字符串和key1相等就可以被选中
     special_key2_len_list = [6]  # 特殊两个key拼接在一起的key2字段长度, 例如34，36
 
     output_file_name = 'output2.xlsx'
-    output_file_column_list = ['f1', 'g1', 'h1']
+    output_file_column_list = ['f1', 'g1', 'h1', 'i1']
 
     # 使用函数
     merge_files(file1_name, file1_key, file2_name_list, file2_key, file2_select_column_list, special_key2_len_list,
